@@ -49,8 +49,10 @@ type TempStruct struct {
 func connectDatabase(){
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	user :=os.Getenv("user")
+	pass :=os.Getenv("pass")
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
-  	"mongodb+srv://raghav:qwerty12345@cluster0.3uzwj.mongodb.net/appointy?retryWrites=true&w=majority",
+  	"mongodb+srv://"+user+":"+pass+"@cluster0.3uzwj.mongodb.net/appointy?retryWrites=true&w=majority",
 	))
 	if err != nil { log.Fatal(err) }
 	appointyDatabase := client.Database("appointy")
