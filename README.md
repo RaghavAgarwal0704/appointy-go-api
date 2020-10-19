@@ -30,4 +30,4 @@
   7.4 Unit Testing-
  
 8.Outputs:
-All output screenshots are available in output folder.
+All output screenshots are available in the output folder.
