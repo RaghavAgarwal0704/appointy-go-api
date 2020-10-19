@@ -1,5 +1,6 @@
 package main
 import(
+	"strconv"
 	"fmt"
 	"sync"
 	"log"
@@ -128,6 +129,8 @@ func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
 		startT :=query.Get("start")
 		endT :=query.Get("end")
 		participant :=query.Get("participant")
+		limitParam :=query.Get("limit")
+		limit,_ :=strconv.Atoi(limitParam)
 		if len(startT) > 0 && len(endT) > 0{
 			
 		start:=strToTime(startT)
@@ -159,7 +162,9 @@ func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
             } else {
 				if start.Before(result.StartTime) || start.Equal(result.StartTime) &&
 					end.After(result.EndTime) || end.Equal(result.EndTime) {
-					meetings = append(meetings, result)
+						if len(meetings)<limit{
+							meetings = append(meetings, result)
+						}
 				}
             }
 		}
@@ -196,7 +201,9 @@ func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
 
 				for _, p := range meeting.Participants {
 					if p.Email == participant {
-						meetings = append(meetings, meeting)
+						if len(meetings)<limit{
+							meetings = append(meetings, meeting)
+						}
 						break
 					}
 				}
