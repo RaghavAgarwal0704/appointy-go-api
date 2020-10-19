@@ -118,7 +118,7 @@ func checkParticipantAvailability(email string, meetingStart time.Time, meetingE
 }
 
 //functin handler to get the meeting based on given ID
-func getMeetingUsingID(w http.ResponseWriter,r *http.Request){
+func GetMeetingUsingID(w http.ResponseWriter,r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != http.MethodGet{
 		w.WriteHeader(405)
@@ -136,7 +136,7 @@ func getMeetingUsingID(w http.ResponseWriter,r *http.Request){
 }
 
 //function for multiple endpoint handling based on request method 
-func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
+func MultipleEndpointFunction(w http.ResponseWriter,r *http.Request){
 	
 	//making our function thread using sync.lock
 	lock.Lock()
@@ -298,7 +298,7 @@ var lock sync.Mutex
 func main(){
 	fmt.Println("starting server")
 	connectDatabase()
-	http.HandleFunc("/meetings",multipleEndpointFunction)
-	http.HandleFunc("/meeting/",getMeetingUsingID)
+	http.HandleFunc("/meetings",MultipleEndpointFunction)
+	http.HandleFunc("/meeting/",GetMeetingUsingID)
 	http.ListenAndServe(":8000",nil)
 }
