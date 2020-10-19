@@ -137,6 +137,8 @@ func getMeetingUsingID(w http.ResponseWriter,r *http.Request){
 
 //function for multiple endpoint handling based on request method 
 func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
+	
+	//making our function thread using sync.lock
 	lock.Lock()
 	defer lock.Unlock()
 	switch r.Method{
