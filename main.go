@@ -1,4 +1,6 @@
 package main
+
+//importing libraries
 import(
 	"strconv"
 	"fmt"
@@ -14,7 +16,9 @@ import(
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/bson"
 
-)
+) 
+
+//model for meeting
 type Meeting struct{
 	ID string `json:"id,omitempty" bson:"id,omitempty"`
 	Title string `json:"title,omitempty" bson:"title,omitempty"`
@@ -24,11 +28,15 @@ type Meeting struct{
 	CreationTimestamp time.Time `json:"creationTimestamp" bson:"creationTimestamp"`
 
 }
+
+//model for meeting participants
 type Participant struct{
 	Name string `json:"name" bson:"name"`
 	Email string `json:"email" bson:"email"`
 	RSVP string `json:"rsvp" bson:"rsvp"`
 }
+
+//temporary model for taking input from GET request URL
 type TempStruct struct {
 	ID           string        `json:"id" bson:"id"`
 	Title        string        `json:"title" bson:"title"`
@@ -36,6 +44,8 @@ type TempStruct struct {
 	StartTime    string        `json:"startTime" bson:"startTime"`
 	EndTime      string        `json:"endTime" bson:"endTime"`
 }
+
+//function to make database connection
 func connectDatabase(){
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -48,6 +58,8 @@ func connectDatabase(){
 	fmt.Println("connected to database")
 	return
 }
+
+//function to convert time in string format to time format
 func strToTime(timeString string) (time.Time) {
 	layout := "02-01-2006 03:04:05 PM"
 	t, err := time.Parse(layout, timeString)
@@ -57,6 +69,8 @@ func strToTime(timeString string) (time.Time) {
 	}
 	return t
 }
+
+//checks whether the meeting is valid based on constraints
 func checkValidity(participants []Participant, meetingStart time.Time, meetingEnd time.Time) (bool, int, error) {
 	var flag bool
 	var err error
@@ -72,7 +86,7 @@ func checkValidity(participants []Participant, meetingStart time.Time, meetingEn
 	return false, -1, nil
 }
 
-// Check if participant already has a meeting
+//check if participant already has a meeting in a particular time frame
 func checkParticipantAvailability(email string, meetingStart time.Time, meetingEnd time.Time) (bool, error) {
 	cur, err := meetingCollection.Find(ctx, bson.D{})
 	if err != nil {
@@ -102,6 +116,8 @@ func checkParticipantAvailability(email string, meetingStart time.Time, meetingE
 	}
 	return false, nil
 }
+
+//functin handler to get the meeting based on given ID
 func getMeetingUsingID(w http.ResponseWriter,r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != http.MethodGet{
@@ -119,6 +135,7 @@ func getMeetingUsingID(w http.ResponseWriter,r *http.Request){
 	w.Write(meeting)
 }
 
+//function for multiple endpoint handling based on request method 
 func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
 	lock.Lock()
 	defer lock.Unlock()
@@ -129,8 +146,8 @@ func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
 		startT :=query.Get("start")
 		endT :=query.Get("end")
 		participant :=query.Get("participant")
-		limitParam :=query.Get("limit")
-		limit,_ :=strconv.Atoi(limitParam)
+		limitParam :=query.Get("limit") // limit parameter for paging purpose
+		limit,_ :=strconv.Atoi(limitParam) //converting string to int
 		if len(startT) > 0 && len(endT) > 0{
 			
 		start:=strToTime(startT)
@@ -162,7 +179,7 @@ func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
             } else {
 				if start.Before(result.StartTime) || start.Equal(result.StartTime) &&
 					end.After(result.EndTime) || end.Equal(result.EndTime) {
-						if len(meetings)<limit{
+						if len(meetings)<limit{   //API paging using limit parameter
 							meetings = append(meetings, result)
 						}
 				}
@@ -201,7 +218,7 @@ func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
 
 				for _, p := range meeting.Participants {
 					if p.Email == participant {
-						if len(meetings)<limit{
+						if len(meetings)<limit{   //API paging using limit parameter
 							meetings = append(meetings, meeting)
 						}
 						break
@@ -268,11 +285,14 @@ func multipleEndpointFunction(w http.ResponseWriter,r *http.Request){
 		w.Write([]byte(`{"message": "Can't find method requested"}`))
 	}
 }
+
+//global variables
 var client *mongo.Client
 var meetingCollection *mongo.Collection
 var ctx context.Context
 var lock sync.Mutex
 
+//main function
 func main(){
 	fmt.Println("starting server")
 	connectDatabase()
